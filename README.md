@@ -45,49 +45,58 @@ public class Main {
         }
 
         //Cau a
+        ProductDao pDao = new ProductDao(manager);
+        List<Product> p = pDao.listProductsBySupplier("Pavlova Ltd.");
+
+        System.out.println("------------------");
+        System.out.println("Danh sach san pham");
+        System.out.println(p);
+        System.out.println("------------------");
+
+        
         //Cau b
         //Cau c
     }
 }
 
 //DAO
-public class ProductDao {
-    private final Neo4jconManager manager;
+public class ProductDAO {
+    private  final Neo4jconnManager manager;
 
-    public ProductDao(Neo4jconManager manager){
+    public ProductDAO(Neo4jconnManager manager){
         this.manager = manager;
     }
 
-    public List<Product> listProductsBySupplier(String companyName){
+    public List<Product> listProductsBySupplier (String companyName){
         if (companyName == null || companyName.trim().isEmpty()){
-            throw new IllegalArgumentException("Khong duoc rong");
+            throw new IllegalArgumentException("khong duoc rong");
         }
 
         List<Product> productList = new ArrayList<>();
 
-        String query = "MATCH(s: Supplier {companyName: $name})-[r]-(p: Product) " +
+        String query = "MATCH(s:Supplier {company_name: $name})-[r]-(p:Product) "+
                 "RETURN p";
 
-        try (Session session = manager.openSession()) {
+        try(Session session = manager.openSession() ){
             Result result = session.run(query, Map.of(
                     "name", companyName
             ));
 
             while (result.hasNext()){
                 Node node = result.next().get("p").asNode();
-                Product p =new Product();
+                Product p = new Product();
                 p.setUnit(node.get("unit").asString());
+                p.setUnitsInStock(node.get("units_in_stock").asInt());
                 p.setProductID(node.get("product_id").asString());
-                p.setProductName(node.get("product_name").asString());
                 p.setUnitPrice(node.get("unit_price").asDouble());
-                p.setUnitsInStock(node.get("unit_in_stock").asInt());
+                p.setProductName(node.get("product_name").asString());
 
                 productList.add(p);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return productList;
     }
+
 }
