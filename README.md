@@ -49,3 +49,45 @@ public class Main {
         //Cau c
     }
 }
+
+//DAO
+public class ProductDao {
+    private final Neo4jconManager manager;
+
+    public ProductDao(Neo4jconManager manager){
+        this.manager = manager;
+    }
+
+    public List<Product> listProductsBySupplier(String companyName){
+        if (companyName == null || companyName.trim().isEmpty()){
+            throw new IllegalArgumentException("Khong duoc rong");
+        }
+
+        List<Product> productList = new ArrayList<>();
+
+        String query = "MATCH(s: Supplier {companyName: $name})-[r]-(p: Product) " +
+                "RETURN p";
+
+        try (Session session = manager.openSession()) {
+            Result result = session.run(query, Map.of(
+                    "name", companyName
+            ));
+
+            while (result.hasNext()){
+                Node node = result.next().get("p").asNode();
+                Product p =new Product();
+                p.setUnit(node.get("unit").asString());
+                p.setProductID(node.get("product_id").asString());
+                p.setProductName(node.get("product_name").asString());
+                p.setUnitPrice(node.get("unit_price").asDouble());
+                p.setUnitsInStock(node.get("unit_in_stock").asInt());
+
+                productList.add(p);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return productList;
+    }
+}
