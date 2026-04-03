@@ -55,7 +55,23 @@ public class Main {
 
         
         //Cau b
+        SupplierUpdateDao sDao = new SupplierUpdateDao(manager);
+        Supplier sup = new Supplier();
+        sup.setSupplierID("S001");
+        sup.setCountry("VN");
+        sup.setContactName("phuc");
+        sup.setCompanyName("PhucCompany");
+
+        boolean s = sDao.updateSupplier(sup);
+        if (s){
+            System.out.println("Cap nhat thanh cong");
+        } else {
+            System.out.println("Cap nhat that bai");
+        }
+        System.out.println("------------------");
+        
         //Cau c
+        //Cau d
     }
 }
 
@@ -99,4 +115,42 @@ public class ProductDAO {
         return productList;
     }
 
+}
+
+public class SupplierUpdateDao {
+    private final Neo4jconManager manager;
+
+    public SupplierUpdateDao (Neo4jconManager manager){
+        this.manager = manager;
+    }
+
+    public boolean updateSupplier(Supplier supplier){
+        if(supplier == null || supplier.getSupplierID().trim().isEmpty()) {
+            throw new IllegalArgumentException("k dc rong");
+        }
+
+        if(supplier.getCompanyName().trim().isEmpty()){
+            throw new IllegalArgumentException("k dc rong");
+        }
+
+        String query = "MATCH(s: Supplier {supplier_id: $id}) " +
+                "SET s.country = $country, " +
+                "s.contact_name = $contact_name, " +
+                "s.company_name = $company_name " +
+                "RETURN s";
+
+        try (Session session = manager.openSession()) {
+            Result result = session.run(query, Map.of(
+                    "id", supplier.getSupplierID(),
+                    "country", supplier.getCountry(),
+                    "contact_name", supplier.getContactName(),
+                    "company_name", supplier.getCompanyName()
+            ));
+
+            return result.hasNext();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
