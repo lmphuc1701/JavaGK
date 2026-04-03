@@ -87,6 +87,16 @@ public class Main {
         System.out.println("------------------");
         
         //Cau d
+        SupplierDeleteDao dDao = new SupplierDeleteDao(manager);
+        Supplier dSup = new Supplier();
+        dSup.setSupplierID("11");
+        boolean d = dDao.deleteSupplier(dSup);
+        if (d){
+            System.out.println("Xoa thanh cong");
+        } else {
+            System.out.println("Xoa that bai");
+        }
+        System.out.println("------------------");
     }
 }
 
@@ -197,3 +207,28 @@ public class SupplierAddDao {
     }
 }
 
+public class SupplierDeleteDao {
+    private final Neo4jconManager manager;
+
+    public SupplierDeleteDao(Neo4jconManager manager){
+        this.manager = manager;
+    }
+
+    public boolean deleteSupplier(Supplier supplier){
+        String query = "MATCH(s: Supplier {supplier_id: $id}) " +
+                "DETACH DELETE s " +
+                "RETURN $id";
+
+        try (Session session = manager.openSession()){
+            Result result = session.run(query, Map.of(
+                    "id", supplier.getSupplierID()
+            ));
+
+            return result.hasNext();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+}
