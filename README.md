@@ -71,6 +71,21 @@ public class Main {
         System.out.println("------------------");
         
         //Cau c
+        SupplierAddDao aDao = new SupplierAddDao(manager);
+        Supplier addSup = new Supplier();
+        addSup.setCountry("VN");
+        addSup.setCompanyName("Company cua tui");
+        addSup.setContactName("meomeo");
+        addSup.setSupplierID("112112");
+
+        boolean a = aDao.addSupplier(addSup);
+        if (a){
+            System.out.println("Them thanh cong");
+        } else {
+            System.out.println("Them that bai");
+        }
+        System.out.println("------------------");
+        
         //Cau d
     }
 }
@@ -154,3 +169,31 @@ public class SupplierUpdateDao {
         return false;
     }
 }
+
+public class SupplierAddDao {
+    private final Neo4jconManager manager;
+
+    public SupplierAddDao(Neo4jconManager manager){
+        this.manager = manager;
+    }
+
+    public boolean addSupplier(Supplier supplier){
+        String query = "CREATE(s: Supplier {country: $country, contact_name: $contact_name, company_name: $company_name, supplier_id: $id})" +
+                "RETURN s";
+
+        try (Session session = manager.openSession()){
+            Result result = session.run(query, Map.of(
+                    "country", supplier.getCountry(),
+                    "contact_name", supplier.getContactName(),
+                    "company_name", supplier.getCompanyName(),
+                    "id", supplier.getSupplierID()
+            ));
+
+            return result.hasNext();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+}
+
